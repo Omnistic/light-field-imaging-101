@@ -14,7 +14,7 @@ jupyter: python3
 
 ## Welcome to Light-Field Imaging 101
 
-This tutorial is inspired by the Light-Field Imaging Toolkit [@bolan2016light] implemented in MATLAB.
+This tutorial aims to provide a didactic introduction to light-field imaging fundamentals in Python. While valuable resources exist, including the Light-Field Imaging Toolkit [@bolan2016light] and the informative website [plenoptic.info](https://www.plenoptic.info/), there remains an opportunity for educational materials that build understanding systematically from first principles. By presenting concepts in a structured, accessible format with Python examples, this guide seeks to complement existing academic literature. The focus throughout is on developing an intuitive grasp of light-field principles, connecting theoretical foundations with practical implementations in Python, and creating a resource suitable for those new to the field.
 
 ## Quick Visualization
 
