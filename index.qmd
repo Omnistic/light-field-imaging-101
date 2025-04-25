@@ -2,6 +2,8 @@
 title: "Light-Field Imaging 101"
 subtitle: "A comprehensive introduction to unfocused light-field imaging (plenoptic 1.0)"
 author: "David Nguyen"
+date: last-modified
+date-format: "MMMM D, YYYY"
 bibliography: references.bib
 format:
   html:
@@ -12,7 +14,7 @@ jupyter: python3
 
 ## Welcome to Light-Field Imaging 101
 
-This tutorial is inspired by the Light-Field Imaging Toolkit [@bolan2016light].
+This tutorial is inspired by the Light-Field Imaging Toolkit [@bolan2016light] implemented in MATLAB.
 
 ## Quick Visualization
 

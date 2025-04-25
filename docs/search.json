@@ -1,0 +1,23 @@
+[
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "Light-Field Imaging 101",
+    "section": "",
+    "text": "This tutorial is inspired by the Light-Field Imaging Toolkit (Bolan et al. 2016) implemented in MATLAB."
+  },
+  {
+    "objectID": "index.html#welcome-to-light-field-imaging-101",
+    "href": "index.html#welcome-to-light-field-imaging-101",
+    "title": "Light-Field Imaging 101",
+    "section": "",
+    "text": "This tutorial is inspired by the Light-Field Imaging Toolkit (Bolan et al. 2016) implemented in MATLAB."
+  },
+  {
+    "objectID": "index.html#quick-visualization",
+    "href": "index.html#quick-visualization",
+    "title": "Light-Field Imaging 101",
+    "section": "Quick Visualization",
+    "text": "Quick Visualization\nLet’s verify our environment works with a simple visualization:\nimport numpy as np import matplotlib.pyplot as plt"
+  }
+]
