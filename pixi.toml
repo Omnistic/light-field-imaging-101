@@ -1,0 +1,17 @@
+[workspace]
+channels = ["conda-forge"]
+name = "light-field-imaging-101"
+platforms = ["win-64", "linux-64", "osx-64", "osx-arm64"]
+version = "0.1.0"
+
+[tasks]
+
+[dependencies]
+python = ">=3.10,<3.12"
+numpy = "*"
+scipy = "*"
+scikit-image = "*"
+matplotlib = "*"
+ipykernel = "*"
+nbformat = "*"
+notebook = "*"

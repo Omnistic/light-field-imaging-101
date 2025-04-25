@@ -1,0 +1,36 @@
+---
+title: "Light-Field Imaging 101"
+subtitle: "A comprehensive introduction to unfocused light-field imaging (plenoptic 1.0)"
+author: "David Nguyen"
+bibliography: references.bib
+format:
+  html:
+    toc: true
+    code-fold: show
+jupyter: python3
+---
+
+## Welcome to Light-Field Imaging 101
+
+This tutorial is inspired by the Light-Field Imaging Toolkit [@bolan2016light].
+
+## Quick Visualization
+
+Let's verify our environment works with a simple visualization:
+
+```{python}
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Create a simple array
+x = np.linspace(0, 10, 100)
+y = np.sin(x)
+
+# Simple plot
+plt.figure(figsize=(8, 4))
+plt.plot(x, y)
+plt.title('A Simple Sine Wave')
+plt.xlabel('x')
+plt.ylabel('sin(x)')
+plt.grid(True)
+plt.show()
