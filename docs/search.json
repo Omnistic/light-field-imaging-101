@@ -4,20 +4,20 @@
     "href": "index.html",
     "title": "Light-Field Imaging 101",
     "section": "",
-    "text": "This tutorial aims to provide a didactic introduction to light-field imaging fundamentals in Python. While valuable resources exist, including the Light-Field Imaging Toolkit (Bolan et al. 2016) and the informative website plenoptic.info, there remains an opportunity for educational materials that build understanding systematically from first principles. By presenting concepts in a structured, accessible format with Python examples, this guide seeks to complement existing academic literature. The focus throughout is on developing an intuitive grasp of light-field principles, connecting theoretical foundations with practical implementations in Python, and creating a resource suitable for those new to the field."
+    "text": "This tutorial aims to provide a didactic introduction to unfocused light-field (plenoptic 1.0) image processing in Python. While valuable resources exist, including the Light-Field Imaging Toolkit in MATLAB (Bolan et al. 2016) and the informative website plenoptic.info, there remains an opportunity for educational materials that build understanding systematically from first principles. By presenting concepts in a structured, accessible format with Python examples, this guide seeks to complement existing academic literature."
   },
   {
-    "objectID": "index.html#welcome-to-light-field-imaging-101",
-    "href": "index.html#welcome-to-light-field-imaging-101",
+    "objectID": "index.html#motivation",
+    "href": "index.html#motivation",
     "title": "Light-Field Imaging 101",
     "section": "",
-    "text": "This tutorial aims to provide a didactic introduction to light-field imaging fundamentals in Python. While valuable resources exist, including the Light-Field Imaging Toolkit (Bolan et al. 2016) and the informative website plenoptic.info, there remains an opportunity for educational materials that build understanding systematically from first principles. By presenting concepts in a structured, accessible format with Python examples, this guide seeks to complement existing academic literature. The focus throughout is on developing an intuitive grasp of light-field principles, connecting theoretical foundations with practical implementations in Python, and creating a resource suitable for those new to the field."
+    "text": "This tutorial aims to provide a didactic introduction to unfocused light-field (plenoptic 1.0) image processing in Python. While valuable resources exist, including the Light-Field Imaging Toolkit in MATLAB (Bolan et al. 2016) and the informative website plenoptic.info, there remains an opportunity for educational materials that build understanding systematically from first principles. By presenting concepts in a structured, accessible format with Python examples, this guide seeks to complement existing academic literature."
   },
   {
-    "objectID": "index.html#quick-visualization",
-    "href": "index.html#quick-visualization",
+    "objectID": "index.html#raw-images",
+    "href": "index.html#raw-images",
     "title": "Light-Field Imaging 101",
-    "section": "Quick Visualization",
-    "text": "Quick Visualization\nLet’s verify our environment works with a simple visualization:\nimport numpy as np import matplotlib.pyplot as plt"
+    "section": "Raw images",
+    "text": "Raw images\nThroughout this tutorial the following synthetic images will be used. A typical image of the raw light-field as acquired by the sensor\n\n\nCode\nimport numpy as np\nimport matplotlib.pyplot as plt\n\n# Create a simple array\nx = np.linspace(0, 10, 100)\ny = np.sin(x)\n\n# Simple plot\nplt.figure(figsize=(8, 4))\nplt.plot(x, y)\nplt.title('A Simple Sine Wave')\nplt.xlabel('x')\nplt.ylabel('sin(x)')\nplt.grid(True)\nplt.show()"
   }
 ]
