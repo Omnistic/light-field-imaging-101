@@ -1,0 +1,23 @@
+[
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "Light-Field Imaging 101",
+    "section": "",
+    "text": "This guide aims to expand upon existing unfocused light-field (plenoptic 1.0) imaging learning material by providing detailed Python implementations of light-field image processing along with examples. The light-field image processing workflow closely follows that of the MATLAB-based Light-Field Imaging Toolkit (Bolan et al. 2016), but leverages Python’s open-source ecosystem and Quarto’s enhanced capabilities for visualization and LaTeX formula integration.\nBy focusing specifically on the image processing aspects, this guide helps readers better understand the technical limitations and practical considerations of light-field imaging techniques. This guide assumes the reader is familiar with unfocused light-field imaging. Such an understanding can be achieved by browsing plenoptic.info or reading the unfocused light-field part of the Light-Field Camera Working Principles chapter (Pages 11-25) of the book Development and Application of Light-Field Cameras in Fluid Measurements (Shi and New 2023)."
+  },
+  {
+    "objectID": "index.html#intended-audience",
+    "href": "index.html#intended-audience",
+    "title": "Light-Field Imaging 101",
+    "section": "",
+    "text": "This guide aims to expand upon existing unfocused light-field (plenoptic 1.0) imaging learning material by providing detailed Python implementations of light-field image processing along with examples. The light-field image processing workflow closely follows that of the MATLAB-based Light-Field Imaging Toolkit (Bolan et al. 2016), but leverages Python’s open-source ecosystem and Quarto’s enhanced capabilities for visualization and LaTeX formula integration.\nBy focusing specifically on the image processing aspects, this guide helps readers better understand the technical limitations and practical considerations of light-field imaging techniques. This guide assumes the reader is familiar with unfocused light-field imaging. Such an understanding can be achieved by browsing plenoptic.info or reading the unfocused light-field part of the Light-Field Camera Working Principles chapter (Pages 11-25) of the book Development and Application of Light-Field Cameras in Fluid Measurements (Shi and New 2023)."
+  },
+  {
+    "objectID": "index.html#raw-images",
+    "href": "index.html#raw-images",
+    "title": "Light-Field Imaging 101",
+    "section": "Raw images",
+    "text": "Raw images\nTo illustrate light-field image processing concepts, a synthetic raw light-field image was generated. The raw light-field image describes the pixel intensities recorded by an unfocused light-field camera.\n\n\nCode\nimport tifffile\nimport plotly.express as px\n\nraw_light_field = tifffile.imread('raw-light-field.tif')\n\nfig = px.imshow(\n    raw_light_field,\n    color_continuous_scale='gray',\n    aspect='equal'\n)\n\nfig.show()"
+  }
+]
