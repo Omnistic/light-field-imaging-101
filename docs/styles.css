@@ -1,0 +1,12 @@
+/* For all figures */
+.quarto-figure {
+    margin-left: 10%;
+    margin-right: auto;
+    width: 60%;  /* Adjust this percentage to your preference */
+  }
+/* And if you want to constrain the caption width as well */
+.quarto-figure figcaption {
+    max-width: 80%;
+    margin-left: 10%;
+    margin-right: auto;
+  }

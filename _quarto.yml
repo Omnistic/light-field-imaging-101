@@ -1,6 +1,11 @@
 project:
   type: website
   output-dir: docs
+format:
+  html:
+    toc: true
+    code-fold: show
+    css: styles.css
 execute:
   echo: false
   python: .pixi/envs/default/python.exe

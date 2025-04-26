@@ -5,10 +5,7 @@ author: "David Nguyen"
 date: last-modified
 date-format: "MMMM D, YYYY"
 bibliography: references.bib
-format:
-  html:
-    toc: true
-    code-fold: show
+csl: ieee.csl
 jupyter: python3
 ---
 
@@ -18,7 +15,9 @@ This guide aims to expand upon existing unfocused light-field (plenoptic 1.0) im
 
 By focusing specifically on the image processing aspects, this guide helps readers better understand the technical limitations and practical considerations of light-field imaging techniques. This guide assumes the reader is familiar with unfocused light-field imaging. Such an understanding can be achieved by browsing [plenoptic.info](https://www.plenoptic.info/) or reading the unfocused light-field part of the Light-Field Camera Working Principles chapter (Pages 11-25) of the book Development and Application of Light-Field Cameras in Fluid Measurements [@shi2023development].
 
-# Raw images
+# Preprocessing
+
+## Raw images
 
 To illustrate light-field image processing concepts, a synthetic unfocused light-field image was generated and is shown in @fig-unfocused-light-field. The image describes the raw pixel intensities as recorded by an unfocused light-field camera. Every lenslet of the camera projects the incident radiance into a defocused intensity distribution pattern. This manifests as a spatially constrained blur where the light energy from each microlens is distributed across multiple sensor pixels rather than being concentrated at the expected conjugate position. The image was generated using a commercial ray tracing software (OpticStudio, ANSYS).
 
@@ -45,7 +44,7 @@ fig.show()
 Synthetic unfocused light-field image. The hexagonal patterning in the image is characteristic of the projection process by the microlens array.
 :::
 
-# Calibration
+## Calibration
 
 The calibration process seeks to pinpoint the centroid of each lenslet's corresponding sensor region. A calibration image is acquired with the main lens's aperture reduced to a minimum. The resulting calibration image consist of an array of small bright spots as shown in @fig-calibration.
 
@@ -66,5 +65,5 @@ fig.update_layout(
 
 fig.show()
 ```
-Synthetic light-field calibration image.
+Synthetic light-field calibration image. Every bright spot is indicative of the corresponding lenslet centroid on the sensor.
 :::
