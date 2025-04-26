@@ -2,4 +2,5 @@ project:
   type: website
   output-dir: docs
 execute:
+  echo: false
   python: .pixi/envs/default/python.exe

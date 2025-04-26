@@ -12,16 +12,17 @@ format:
 jupyter: python3
 ---
 
-## Intended Audience
+# Intended Audience
 
 This guide aims to expand upon existing unfocused light-field (plenoptic 1.0) imaging learning material by providing detailed Python implementations of light-field image processing along with examples. The light-field image processing workflow closely follows that of the MATLAB-based Light-Field Imaging Toolkit [@bolan2016light], but leverages Python's open-source ecosystem and Quarto's enhanced capabilities for visualization and LaTeX formula integration.
 
 By focusing specifically on the image processing aspects, this guide helps readers better understand the technical limitations and practical considerations of light-field imaging techniques. This guide assumes the reader is familiar with unfocused light-field imaging. Such an understanding can be achieved by browsing [plenoptic.info](https://www.plenoptic.info/) or reading the unfocused light-field part of the Light-Field Camera Working Principles chapter (Pages 11-25) of the book Development and Application of Light-Field Cameras in Fluid Measurements [@shi2023development].
 
-## Raw images
+# Raw images
 
-To illustrate light-field image processing concepts, a synthetic raw light-field image was generated. The raw light-field image describes the pixel intensities recorded by an unfocused light-field camera.
+To illustrate light-field image processing concepts, a synthetic unfocused light-field image was generated and is shown in @fig-unfocused-light-field. The image describes the raw pixel intensities as recorded by an unfocused light-field camera. Every lenslet of the camera projects the incident radiance into a defocused intensity distribution pattern. This manifests as a spatially constrained blur where the light energy from each microlens is distributed across multiple sensor pixels rather than being concentrated at the expected conjugate position. The image was generated using a commercial ray tracing software (OpticStudio, ANSYS).
 
+::: {#fig-unfocused-light-field .column-page style="text-align: center;"}
 ```{python}
 import tifffile
 import plotly.express as px
@@ -34,5 +35,36 @@ fig = px.imshow(
     aspect='equal'
 )
 
+fig.update_layout(
+    xaxis=dict(showticklabels=False, showgrid=False, zeroline=False, visible=False),
+    yaxis=dict(showticklabels=False, showgrid=False, zeroline=False, visible=False)
+)
+
 fig.show()
 ```
+Synthetic unfocused light-field image. The hexagonal patterning in the image is characteristic of the projection process by the microlens array.
+:::
+
+# Calibration
+
+The calibration process seeks to pinpoint the centroid of each lenslet's corresponding sensor region. A calibration image is acquired with the main lens's aperture reduced to a minimum. The resulting calibration image consist of an array of small bright spots as shown in @fig-calibration.
+
+::: {#fig-calibration .column-page style="text-align: center;"}
+```{python}
+calibration = tifffile.imread('calibration.tif')
+
+fig = px.imshow(
+    calibration,
+    color_continuous_scale='gray',
+    aspect='equal'
+)
+
+fig.update_layout(
+    xaxis=dict(showticklabels=False, showgrid=False, zeroline=False, visible=False),
+    yaxis=dict(showticklabels=False, showgrid=False, zeroline=False, visible=False)
+)
+
+fig.show()
+```
+Synthetic light-field calibration image.
+:::
