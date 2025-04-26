@@ -26,10 +26,10 @@ To illustrate light-field image processing concepts, a synthetic unfocused light
 import tifffile
 import plotly.express as px
 
-raw_light_field = tifffile.imread('raw-light-field.tif')
+raw_light_field_image = tifffile.imread('raw-light-field.tif')
 
 fig = px.imshow(
-    raw_light_field,
+    raw_light_field_image,
     color_continuous_scale='gray',
     aspect='equal'
 )
@@ -50,10 +50,13 @@ The calibration process seeks to pinpoint the centroid of each lenslet's corresp
 
 ::: {#fig-calibration .column-page style="text-align: center;"}
 ```{python}
-calibration = tifffile.imread('calibration.tif')
+import tifffile
+import plotly.express as px
+
+calibration_image = tifffile.imread('calibration.tif')
 
 fig = px.imshow(
-    calibration,
+    calibration_image,
     color_continuous_scale='gray',
     aspect='equal'
 )
@@ -67,3 +70,33 @@ fig.show()
 ```
 Synthetic light-field calibration image. Every bright spot is indicative of the corresponding lenslet centroid on the sensor.
 :::
+
+The centroid identification process based on intensity peaks in an image is a standard image processing technique widely documented in the literature, not exclusive to light-field imaging. Since the synthetic calibration image contains no sensor noise, the calibration procedure has been intentionally simplified to emphasize conceptual clarity and streamline the explanation.
+
+```{python}
+#| echo: true
+from skimage import morphology
+from skimage.morphology import disk
+from skimage.measure import label, regionprops
+
+# Load calibration image
+calibration_image = tifffile.imread('calibration.tif')
+
+# Apply hard-coded threshold
+binary_calibration = calibration_image > 10
+
+# Perform a binary dilation to ensure coverage of the spots for the computation
+# of the weighted centroid
+opened_calibration = morphology.binary_dilation(binary_calibration, disk(5))
+
+# Create labels 
+labeled_calibration = label(opened_calibration)
+
+# Apply regionprops
+regions_calibration = regionprops(labeled_calibration, intensity_image=calibration_image)
+
+# Compute weighted centroids location
+centroids = [region.centroid_weighted for region in regions_calibration]
+
+print(len(centroids))
+```
