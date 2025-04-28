@@ -107,11 +107,14 @@ regions_calibration = regionprops(labeled_calibration, intensity_image=calibrati
 # Compute weighted centroids location
 centroids = [region.centroid_weighted for region in regions_calibration]
 
-print('Number of centroids detected:', len(centroids))
+print(f"Number of centroids detected: {len(centroids):,}".replace(",", "\u2009"))
 ```
 
-The hard-coded threshold was chosen such that the number of centroids detected matched the expected 2&thinsp;729 from @sec-mla. 
+The threshold value was manually selected to ensure the number of detected centroids matches the total lenslet count (2&thinsp;729) as described in Section @sec-mla.
 
+The centroid localization procedure is demonstrated in @fig-centroid using a representative calibration spot. The figure displays two frames: the first showing a magnified view of an individual calibration spot, and the second showing the binary mask generated through thresholding and morphological dilation operations. The calculated weighted centroid position, determined by applying the mask to the intensity distribution of the spot, is indicated by a pink cross marker.
+
+::: {#fig-centroid .column-page style='text-align: center;'}
 ```{python}
 import numpy as np
 import plotly.graph_objects as go
@@ -166,8 +169,10 @@ fig.update_layout(
     ),
 )
 fig['layout'].pop('updatemenus')
-fig['layout']['sliders'][0]['pad']=dict(r=80)
+fig['layout']['sliders'][0]['pad']=dict(r=80, b=20)
 fig.layout.sliders[0].steps[0].label = 'Calibration ROI'
 fig.layout.sliders[0].steps[1].label = 'Thresholded and dilated ROI'
 fig.show()
 ```
+Close-up of a calibration spot showing the centroid identification process. Toggle view shows: 'Calibration ROI' (original spot from calibration image) or 'Thresholded and dilated ROI' (processed mask). Pink cross indicating the weighted centroid location.
+:::
