@@ -2,7 +2,8 @@
 title: 'Light-Field Imaging 101'
 subtitle: 'A comprehensive introduction to unfocused light-field imaging (plenoptic 1.0)'
 author: 'David Nguyen'
-date: last-modified
+# date: 04/25/2025
+date-modified: last-modified
 date-format: 'MMMM D, YYYY'
 number-sections: true
 bibliography: references.bib
@@ -34,12 +35,10 @@ fig = px.imshow(
     color_continuous_scale='gray',
     aspect='equal'
 )
-
 fig.update_layout(
     xaxis=dict(showticklabels=False, showgrid=False, zeroline=False, visible=False),
     yaxis=dict(showticklabels=False, showgrid=False, zeroline=False, visible=False)
 )
-
 fig.show()
 ```
 Synthetic unfocused light-field image. The hexagonal patterning in the image is characteristic of the projection process by the microlens array.
@@ -57,9 +56,6 @@ The calibration process seeks to pinpoint the centroid of each lenslet's corresp
 
 ::: {#fig-calibration .column-page style='text-align: center;'}
 ```{python}
-import tifffile
-import plotly.express as px
-
 calibration_image = tifffile.imread('calibration.tif')
 
 fig = px.imshow(
@@ -67,12 +63,10 @@ fig = px.imshow(
     color_continuous_scale='gray',
     aspect='equal'
 )
-
 fig.update_layout(
     xaxis=dict(showticklabels=False, showgrid=False, zeroline=False, visible=False),
     yaxis=dict(showticklabels=False, showgrid=False, zeroline=False, visible=False)
 )
-
 fig.show()
 ```
 Synthetic light-field calibration image. Every bright spot is indicative of the corresponding lenslet centroid on the sensor.
@@ -107,7 +101,7 @@ regions_calibration = regionprops(labeled_calibration, intensity_image=calibrati
 # Compute weighted centroids location
 centroids = [region.centroid_weighted for region in regions_calibration]
 
-print(f"Number of centroids detected: {len(centroids):,}".replace(",", "\u2009"))
+print(f'Number of centroids detected: {len(centroids):,}'.replace(',', '\u2009'))
 ```
 
 The threshold value was manually selected to ensure the number of detected centroids matches the total lenslet count (2&thinsp;729) as described in Section @sec-mla.
@@ -121,9 +115,9 @@ import plotly.graph_objects as go
 
 def get_roi(image, center, half_size):
     y, x = center
-    return image[y-half_size:y+half_size, x-half_size:x+half_size]
+    return image[y-half_size:y+half_size+1, x-half_size:x+half_size+1]
 
-one_centroid = np.array(centroids[500])
+one_centroid = np.array(centroids[960])
 rounded_centroid = one_centroid.astype(int)
 roi_half_size = 10
 
@@ -166,7 +160,7 @@ fig.update_layout(
         zeroline=False, 
         visible=False,
         fixedrange=True
-    ),
+    )
 )
 fig['layout'].pop('updatemenus')
 fig['layout']['sliders'][0]['pad']=dict(r=80, b=20)
@@ -176,3 +170,87 @@ fig.show()
 ```
 Close-up of a calibration spot showing the centroid identification process. Toggle view shows: 'Calibration ROI' (original spot from calibration image) or 'Thresholded and dilated ROI' (processed mask). Pink cross indicating the weighted centroid location.
 :::
+
+## Reshaping
+
+The next step is to reshape the 2D light-field image into a 4D light-field array.
+
+```{python}
+from scipy.interpolate import interpn
+
+roi_half_size = 20
+
+one_uv = get_roi(raw_light_field_image, rounded_centroid, roi_half_size)
+
+old_u = np.arange(-roi_half_size, roi_half_size+1)
+old_v = np.arange(-roi_half_size, roi_half_size+1)
+
+new_u = old_u + one_centroid[0] - rounded_centroid[0]
+new_v = old_v + one_centroid[1] - rounded_centroid[1]
+
+new_u_grid, new_v_grid = np.meshgrid(new_u, new_v)
+
+interpolated_uv = interpn((old_u, old_v), one_uv, (new_v_grid, new_u_grid), bounds_error=False, fill_value=None)
+
+fig = px.imshow(
+    np.stack([one_uv, interpolated_uv], axis=0),
+    color_continuous_scale='gray',
+    aspect='equal',
+    animation_frame=0
+)
+fig.add_trace(
+    go.Scatter(
+        x=[one_centroid[0]-rounded_centroid[0]+roi_half_size],
+        y=[one_centroid[1]-rounded_centroid[1]+roi_half_size],
+        marker=dict(
+            size=20,
+            line=dict(
+                width=5,
+                color='#CC79A7'
+            ),
+            symbol='x-thin'
+        )
+    )
+)
+fig.add_shape(
+    type='line',
+    x0=0,
+    y0=roi_half_size+1,
+    x1=2*roi_half_size,
+    y1=roi_half_size+1,
+    line=dict(
+        color='#F0E442',
+        width=2
+    )
+)
+fig.add_shape(
+    type='line',
+    x0=roi_half_size+1,
+    y0=0,
+    x1=roi_half_size+1,
+    y1=2*roi_half_size,
+    line=dict(
+        color='#F0E442',
+        width=2
+    )
+)
+fig.update_layout(
+    coloraxis_showscale=False,
+    dragmode=False,
+    xaxis=dict(
+        showticklabels=False, 
+        showgrid=False, 
+        zeroline=False, 
+        visible=False,
+        fixedrange=True
+    ),
+    yaxis=dict(
+        showticklabels=False, 
+        showgrid=False, 
+        zeroline=False, 
+        visible=False,
+        fixedrange=True
+    )
+)
+fig.show()
+```
