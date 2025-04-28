@@ -1,9 +1,9 @@
 ---
-title: "Light-Field Imaging 101"
-subtitle: "A comprehensive introduction to unfocused light-field imaging (plenoptic 1.0)"
-author: "David Nguyen"
+title: 'Light-Field Imaging 101'
+subtitle: 'A comprehensive introduction to unfocused light-field imaging (plenoptic 1.0)'
+author: 'David Nguyen'
 date: last-modified
-date-format: "MMMM D, YYYY"
+date-format: 'MMMM D, YYYY'
 bibliography: references.bib
 csl: ieee.csl
 jupyter: python3
@@ -17,11 +17,11 @@ By focusing specifically on the image processing aspects, this guide helps reade
 
 # Preprocessing
 
-## Raw images
+## Raw Images
 
 To illustrate light-field image processing concepts, a synthetic unfocused light-field image was generated and is shown in @fig-unfocused-light-field. The image describes the raw pixel intensities as recorded by an unfocused light-field camera. Every lenslet of the camera projects the incident radiance into a defocused intensity distribution pattern. This manifests as a spatially constrained blur where the light energy from each microlens is distributed across multiple sensor pixels rather than being concentrated at the expected conjugate position. The image was generated using a commercial ray tracing software (OpticStudio, ANSYS).
 
-::: {#fig-unfocused-light-field .column-page style="text-align: center;"}
+::: {#fig-unfocused-light-field .column-page style='text-align: center;'}
 ```{python}
 import tifffile
 import plotly.express as px
@@ -44,11 +44,17 @@ fig.show()
 Synthetic unfocused light-field image. The hexagonal patterning in the image is characteristic of the projection process by the microlens array.
 :::
 
+## Microlens Array Structure
+
+The unfocused light-field camera model implemented in this investigation utilizes a hexagonal microlens array configuration for two primary reasons. First, hexagonal microlens arrays provide optimal spatial packing efficiency, thereby maximizing the effective sensor area utilization. Second, the hexagonal pattern introduces additional computational complexity in light-field image processing algorithms—specifically in sampling pattern interpolation and spatial frequency analysis—that merits thorough examination within this methodological framework.
+
+The hexagonal microlens array has 51 × 51 complete lenslets. This core array is supplemented with partial lenslets along the periphery to achieve an overall rectangular shape. The total number of elements in the array is 2&thinsp;729, which corresponds to the expected number of spots in the calibration image.
+
 ## Calibration
 
 The calibration process seeks to pinpoint the centroid of each lenslet's corresponding sensor region. A calibration image is acquired with the main lens's aperture reduced to a minimum. The resulting calibration image consist of an array of small bright spots as shown in @fig-calibration.
 
-::: {#fig-calibration .column-page style="text-align: center;"}
+::: {#fig-calibration .column-page style='text-align: center;'}
 ```{python}
 import tifffile
 import plotly.express as px
@@ -73,6 +79,8 @@ Synthetic light-field calibration image. Every bright spot is indicative of the 
 
 The centroid identification process based on intensity peaks in an image is a standard image processing technique widely documented in the literature, not exclusive to light-field imaging. Since the synthetic calibration image contains no sensor noise, the calibration procedure has been intentionally simplified to emphasize conceptual clarity and streamline the explanation.
 
+The spot centroid detection procedure consists of three main steps. First, a manual threshold is applied to the calibration image to identify potential spot locations. Second, a binary dilation operation using a disk-shaped structuring element is performed to expand these areas, ensuring that the subsequent weighted centroid calculation encompasses the full spot and its immediate surroundings. Finally, the [`scikit-image`](https://scikit-image.org/) `regionprops` function is used to calculate the intensity-weighted centroids of each spot.
+
 ```{python}
 #| echo: true
 from skimage import morphology
@@ -82,15 +90,15 @@ from skimage.measure import label, regionprops
 # Load calibration image
 calibration_image = tifffile.imread('calibration.tif')
 
-# Apply hard-coded threshold
-binary_calibration = calibration_image > 10
+# Apply hard-coded threshold (chosen to match the expected number of centroids)
+binary_calibration = calibration_image > 16
 
 # Perform a binary dilation to ensure coverage of the spots for the computation
 # of the weighted centroid
-opened_calibration = morphology.binary_dilation(binary_calibration, disk(5))
+dilated_calibration = morphology.binary_dilation(binary_calibration, disk(4))
 
 # Create labels 
-labeled_calibration = label(opened_calibration)
+labeled_calibration = label(dilated_calibration)
 
 # Apply regionprops
 regions_calibration = regionprops(labeled_calibration, intensity_image=calibration_image)
@@ -98,5 +106,60 @@ regions_calibration = regionprops(labeled_calibration, intensity_image=calibrati
 # Compute weighted centroids location
 centroids = [region.centroid_weighted for region in regions_calibration]
 
-print(len(centroids))
+print('Number of spots detected:', len(centroids))
+```
+
+```{python}
+import numpy as np
+import plotly.graph_objects as go
+
+def get_roi(image, center, half_size):
+    y, x = center
+    return image[y-half_size:y+half_size, x-half_size:x+half_size]
+
+one_centroid = np.array(centroids[500])
+rounded_centroid = one_centroid.astype(int)
+roi_half_size = 10
+
+calibration_roi = get_roi(calibration_image, rounded_centroid, roi_half_size)
+dilated_roi = get_roi(dilated_calibration, rounded_centroid, roi_half_size)
+
+fig = px.imshow(
+    np.stack([calibration_roi, dilated_roi], axis=0),
+    color_continuous_scale='gray',
+    aspect='equal',
+    animation_frame=0
+)
+fig.add_trace(
+    go.Scatter(
+        x=[one_centroid[0]-rounded_centroid[0]+roi_half_size],
+        y=[one_centroid[1]-rounded_centroid[1]+roi_half_size],
+        marker=dict(
+            size=20,
+            line_width=5,
+            symbol='x-thin'
+        )
+    )
+)
+fig.update_layout(
+    coloraxis_showscale=False,
+    dragmode=False,
+    xaxis=dict(
+        showticklabels=False, 
+        showgrid=False, 
+        zeroline=False, 
+        visible=False,
+        fixedrange=True
+    ),
+    yaxis=dict(
+        showticklabels=False, 
+        showgrid=False, 
+        zeroline=False, 
+        visible=False,
+        fixedrange=True
+    ),
+)
+fig.layout.sliders[0].steps[0].label = 'Calibration ROI'
+fig.layout.sliders[0].steps[1].label = 'Thresholded and dilated ROI'
+fig.show()
 ```
