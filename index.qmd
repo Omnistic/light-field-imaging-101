@@ -4,6 +4,7 @@ subtitle: 'A comprehensive introduction to unfocused light-field imaging (plenop
 author: 'David Nguyen'
 date: last-modified
 date-format: 'MMMM D, YYYY'
+number-sections: true
 bibliography: references.bib
 csl: ieee.csl
 jupyter: python3
@@ -44,7 +45,7 @@ fig.show()
 Synthetic unfocused light-field image. The hexagonal patterning in the image is characteristic of the projection process by the microlens array.
 :::
 
-## Microlens Array Structure
+## Microlens Array Structure {#sec-mla}
 
 The unfocused light-field camera model implemented in this investigation utilizes a hexagonal microlens array configuration for two primary reasons. First, hexagonal microlens arrays provide optimal spatial packing efficiency, thereby maximizing the effective sensor area utilization. Second, the hexagonal pattern introduces additional computational complexity in light-field image processing algorithms—specifically in sampling pattern interpolation and spatial frequency analysis—that merits thorough examination within this methodological framework.
 
@@ -106,8 +107,10 @@ regions_calibration = regionprops(labeled_calibration, intensity_image=calibrati
 # Compute weighted centroids location
 centroids = [region.centroid_weighted for region in regions_calibration]
 
-print('Number of spots detected:', len(centroids))
+print('Number of centroids detected:', len(centroids))
 ```
+
+The hard-coded threshold was chosen such that the number of centroids detected matched the expected 2&thinsp;729 from @sec-mla. 
 
 ```{python}
 import numpy as np
@@ -136,7 +139,10 @@ fig.add_trace(
         y=[one_centroid[1]-rounded_centroid[1]+roi_half_size],
         marker=dict(
             size=20,
-            line_width=5,
+            line=dict(
+                width=5,
+                color='#CC79A7'
+            ),
             symbol='x-thin'
         )
     )
@@ -159,6 +165,8 @@ fig.update_layout(
         fixedrange=True
     ),
 )
+fig['layout'].pop('updatemenus')
+fig['layout']['sliders'][0]['pad']=dict(r=80)
 fig.layout.sliders[0].steps[0].label = 'Calibration ROI'
 fig.layout.sliders[0].steps[1].label = 'Thresholded and dilated ROI'
 fig.show()
