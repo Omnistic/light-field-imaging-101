@@ -165,7 +165,7 @@ fig.update_layout(
 fig['layout'].pop('updatemenus')
 fig['layout']['sliders'][0]['pad']=dict(r=80, b=20)
 fig.layout.sliders[0].steps[0].label = 'Calibration ROI'
-fig.layout.sliders[0].steps[1].label = 'Thresholded and dilated ROI'
+fig.layout.sliders[0].steps[1].label = 'Thresholded And Dilated ROI'
 fig.show()
 ```
 Close-up of a calibration spot showing the centroid identification process. Toggle view shows: 'Calibration ROI' (original spot from calibration image) or 'Thresholded and dilated ROI' (processed mask). Pink cross indicating the weighted centroid location.
@@ -185,12 +185,14 @@ one_uv = get_roi(raw_light_field_image, rounded_centroid, roi_half_size)
 old_u = np.arange(-roi_half_size, roi_half_size+1)
 old_v = np.arange(-roi_half_size, roi_half_size+1)
 
-new_u = old_u + one_centroid[0] - rounded_centroid[0]
-new_v = old_v + one_centroid[1] - rounded_centroid[1]
+new_u = old_u + (one_centroid[0] - rounded_centroid[0])
+new_v = old_v + (one_centroid[1] - rounded_centroid[1])
 
 new_u_grid, new_v_grid = np.meshgrid(new_u, new_v)
 
-interpolated_uv = interpn((old_u, old_v), one_uv, (new_v_grid, new_u_grid), bounds_error=False, fill_value=None)
+interpolated_uv = interpn((old_v, old_u), one_uv, (new_v_grid, new_u_grid), bounds_error=False, fill_value=None)
+
+offset_centroid = one_centroid-rounded_centroid+roi_half_size
 
 fig = px.imshow(
     np.stack([one_uv, interpolated_uv], axis=0),
@@ -198,26 +200,45 @@ fig = px.imshow(
     aspect='equal',
     animation_frame=0
 )
-fig.add_trace(
-    go.Scatter(
-        x=[one_centroid[0]-rounded_centroid[0]+roi_half_size],
-        y=[one_centroid[1]-rounded_centroid[1]+roi_half_size],
-        marker=dict(
-            size=20,
-            line=dict(
-                width=5,
-                color='#CC79A7'
-            ),
-            symbol='x-thin'
-        )
-    )
-)
+fig.frames[0].data = fig.frames[0].data + (go.Scatter(
+    x=[offset_centroid[0]],
+    y=[offset_centroid[1]],
+    mode='markers',
+    marker=dict(
+        size=20,
+        line=dict(width=5, color='#CC79A7'),
+        symbol='x-thin'
+    ),
+    showlegend=False
+),)
+fig.frames[1].data = fig.frames[1].data + (go.Scatter(
+    x=[roi_half_size],
+    y=[roi_half_size],
+    mode='markers',
+    marker=dict(
+        size=20,
+        line=dict(width=5, color='#CC79A7'),
+        symbol='x-thin'
+    ),
+    showlegend=False
+),)
+fig.add_trace(go.Scatter(
+    x=[offset_centroid[0]],
+    y=[offset_centroid[1]],
+    mode='markers',
+    marker=dict(
+        size=20,
+        line=dict(width=5, color='#CC79A7'),
+        symbol='x-thin'
+    ),
+    showlegend=False
+))
 fig.add_shape(
     type='line',
     x0=0,
-    y0=roi_half_size+1,
+    y0=roi_half_size,
     x1=2*roi_half_size,
-    y1=roi_half_size+1,
+    y1=roi_half_size,
     line=dict(
         color='#F0E442',
         width=2
@@ -225,9 +246,9 @@ fig.add_shape(
 )
 fig.add_shape(
     type='line',
-    x0=roi_half_size+1,
+    x0=roi_half_size,
     y0=0,
-    x1=roi_half_size+1,
+    x1=roi_half_size,
     y1=2*roi_half_size,
     line=dict(
         color='#F0E442',
@@ -252,5 +273,9 @@ fig.update_layout(
         fixedrange=True
     )
 )
+fig['layout'].pop('updatemenus')
+fig['layout']['sliders'][0]['pad']=dict(r=80, b=20)
+fig.layout.sliders[0].steps[0].label = 'UV Map From ROI'
+fig.layout.sliders[0].steps[1].label = 'Interpolated UV Map'
 fig.show()
 ```
