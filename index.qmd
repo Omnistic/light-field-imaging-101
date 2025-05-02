@@ -46,11 +46,11 @@ Synthetic unfocused light-field image. The hexagonal patterning in the image is 
 
 ## Microlens Array Structure {#sec-mla}
 
-The unfocused light-field camera model implemented in this investigation utilizes a hexagonal microlens array configuration for two primary reasons. First, hexagonal microlens arrays provide optimal spatial packing efficiency, thereby maximizing the effective sensor area utilization. Second, the hexagonal pattern introduces additional computational complexity in light-field image processing algorithms—specifically in sampling pattern interpolation and spatial frequency analysis—that merits thorough examination within this methodological framework.
+The unfocused light-field camera model implemented in this investigation utilizes a hexagonal microlens array configuration for two primary reasons. First, hexagonal microlens arrays provide optimal spatial packing efficiency, thereby maximizing the effective sensor area utilization. Second, the hexagonal pattern introduces additional computational complexity in light-field image processing algorithms—specifically in sampling pattern interpolation—that merits thorough examination within this methodological framework.
 
 The hexagonal microlens array has 51 × 51 complete lenslets. This core array is supplemented with partial lenslets along the periphery to achieve an overall rectangular shape. The total number of elements in the array is 2&thinsp;729, which corresponds to the expected number of spots in the calibration image.
 
-## Calibration
+## Calibration {#sec-calibration}
 
 The calibration process seeks to pinpoint the centroid of each lenslet's corresponding sensor region. A calibration image is acquired with the main lens's aperture reduced to a minimum. The resulting calibration image consist of an array of small bright spots as shown in @fig-calibration.
 
@@ -104,9 +104,9 @@ centroids = [region.centroid_weighted for region in regions_calibration]
 print(f'Number of centroids detected: {len(centroids):,}'.replace(',', '\u2009'))
 ```
 
-The threshold value was manually selected to ensure the number of detected centroids matches the total lenslet count (2&thinsp;729) as described in Section @sec-mla.
+The threshold value was manually selected to ensure the number of detected centroids matches the total lenslet count (2&thinsp;729) as described in @sec-mla.
 
-The centroid localization procedure is demonstrated in @fig-centroid using a representative calibration spot. The figure displays two frames: the first showing a magnified view of an individual calibration spot, and the second showing the binary mask generated through thresholding and morphological dilation operations. The calculated weighted centroid position, determined by applying the mask to the intensity distribution of the spot, is indicated by a pink cross marker.
+The centroid localization procedure is demonstrated in @fig-centroid using a representative calibration spot. The figure displays three frames: the first showing a magnified view of an individual calibration spot, the second showing the binary mask generated through thresholding, and the third showing the binary mask after a morphological dilation operation. The calculated weighted centroid position, determined by applying the dilated mask to the original intensity distribution of the spot, is indicated by a pink cross marker.
 
 ::: {#fig-centroid .column-page style='text-align: center;'}
 ```{python}
@@ -122,10 +122,11 @@ rounded_centroid = one_centroid.astype(int)
 roi_half_size = 10
 
 calibration_roi = get_roi(calibration_image, rounded_centroid, roi_half_size)
+binary_roi = get_roi(binary_calibration, rounded_centroid, roi_half_size)
 dilated_roi = get_roi(dilated_calibration, rounded_centroid, roi_half_size)
 
 fig = px.imshow(
-    np.stack([calibration_roi, dilated_roi], axis=0),
+    np.stack([calibration_roi, binary_roi, dilated_roi], axis=0),
     color_continuous_scale='gray',
     aspect='equal',
     animation_frame=0
@@ -165,16 +166,20 @@ fig.update_layout(
 fig['layout'].pop('updatemenus')
 fig['layout']['sliders'][0]['pad']=dict(r=80, b=20)
 fig.layout.sliders[0].steps[0].label = 'Calibration ROI'
-fig.layout.sliders[0].steps[1].label = 'Thresholded And Dilated ROI'
+fig.layout.sliders[0].steps[1].label = 'Thresholded ROI'
+fig.layout.sliders[0].steps[2].label = 'Dilated ROI'
 fig.show()
 ```
-Close-up of a calibration spot showing the centroid identification process. Toggle view shows: 'Calibration ROI' (original spot from calibration image) or 'Thresholded and dilated ROI' (processed mask). Pink cross indicating the weighted centroid location.
+Close-up of a calibration spot showing the centroid identification process. Toggle view displays: 'Calibration ROI' (original spot from calibration image), 'Thresholded ROI' (binary mask after thresholding), or 'Dilated ROI' (binary mask after morphological dilation). Pink cross indicates the weighted centroid location calculated from the original intensity distribution using the dilated mask.
 :::
 
 ## Reshaping
 
-The next step is to reshape the 2D light-field image into a 4D light-field array.
+The next step is to reshape the 2D light-field image into a 4D light-field array as a function of U and V (the spatial coordinates), and S and T (the angular coordinates). Each centroid location from @sec-calibration has coordinates corresponding to a position in the S and T space. From this position, a U and V map is extracted from the light-field image for each centroid. An interpolation step is introduced to have the centroid aligned on the pixel grid. A masking operation is performed to only keep the circular angular information from the corresponding lenslet.
 
+The reshaping procedure is demonstrated in @fig-reshaping using a representative angular (U and V) space in the light-field image. The figure displays three frames: the first showing an angular space from the light-field image at the location of a rounded calibration spot, the second showing the same angular space interpolated at the exact location of the centroid (aligned with the pixel grid), and the third showing the circular masking to reject angular information from neighboring lenslets. The pink cross marker indicates the weighted centroid position. Yellow axes indicate the center of the ROI.
+
+::: {#fig-reshaping .column-page style='text-align: center;'}
 ```{python}
 from scipy.interpolate import interpn
 
@@ -192,10 +197,13 @@ new_u_grid, new_v_grid = np.meshgrid(new_u, new_v)
 
 interpolated_uv = interpn((old_v, old_u), one_uv, (new_v_grid, new_u_grid), bounds_error=False, fill_value=None)
 
+old_u_grid, old_v_grid = np.meshgrid(old_u, old_v)
+mask = old_u_grid**2 + old_v_grid**2 <= 17**2
+
 offset_centroid = one_centroid-rounded_centroid+roi_half_size
 
 fig = px.imshow(
-    np.stack([one_uv, interpolated_uv], axis=0),
+    np.stack([one_uv, interpolated_uv, interpolated_uv*mask], axis=0),
     color_continuous_scale='gray',
     aspect='equal',
     animation_frame=0
@@ -277,5 +285,8 @@ fig['layout'].pop('updatemenus')
 fig['layout']['sliders'][0]['pad']=dict(r=80, b=20)
 fig.layout.sliders[0].steps[0].label = 'UV Map From ROI'
 fig.layout.sliders[0].steps[1].label = 'Interpolated UV Map'
+fig.layout.sliders[0].steps[2].label = 'Masked UV Map'
 fig.show()
 ```
+Close-up of a light-field angular (U, V) map showing the reshaping process. Toggle view displays: 'UV Map From ROI' (original angular space from light-field image at a specific lenslet location), 'Interpolated UV Map' (angular space with centroid aligned to pixel grid at the center of the close-up), or 'Masked UV Map' (circular mask applied to retain only information from the corresponding lenslet). Pink cross indicates the weighted centroid location. Yellow axes indicate the center of the ROI.
+:::
