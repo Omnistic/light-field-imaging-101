@@ -78,6 +78,8 @@ The spot centroid detection procedure consists of three main steps. First, a man
 
 ```{python}
 #| echo: true
+import numpy as np
+
 from skimage import morphology
 from skimage.morphology import disk
 from skimage.measure import label, regionprops
@@ -86,7 +88,7 @@ from skimage.measure import label, regionprops
 calibration_image = tifffile.imread('calibration.tif')
 
 # Apply hard-coded threshold (chosen to match the expected number of centroids)
-binary_calibration = calibration_image > 16
+binary_calibration = calibration_image>16
 
 # Perform a binary dilation to ensure coverage of the spots for the computation
 # of the weighted centroid
@@ -98,8 +100,8 @@ labeled_calibration = label(dilated_calibration)
 # Apply regionprops
 regions_calibration = regionprops(labeled_calibration, intensity_image=calibration_image)
 
-# Compute weighted centroids location
-centroids = [region.centroid_weighted for region in regions_calibration]
+# Retrieve weighted centroids location and convert list to numpy array
+centroids = np.array([region.centroid_weighted for region in regions_calibration])
 
 print(f'Number of centroids detected: {len(centroids):,}'.replace(',', '\u2009'))
 ```
@@ -110,14 +112,13 @@ The centroid localization procedure is demonstrated in @fig-centroid using a rep
 
 ::: {#fig-centroid .column-page style='text-align: center;'}
 ```{python}
-import numpy as np
 import plotly.graph_objects as go
 
 def get_roi(image, center, half_size):
-    y, x = center
-    return image[y-half_size:y+half_size+1, x-half_size:x+half_size+1]
+    x, y = center
+    return image[x-half_size:x+half_size+1, y-half_size:y+half_size+1]
 
-one_centroid = np.array(centroids[960])
+one_centroid = centroids[960]
 rounded_centroid = one_centroid.astype(int)
 roi_half_size = 10
 
@@ -175,13 +176,89 @@ Close-up of a calibration spot showing the centroid identification process. Togg
 
 ## Reshaping
 
-The next step is to reshape the 2D light-field image into a 4D light-field array as a function of U and V (the spatial coordinates), and S and T (the angular coordinates). Each centroid location from @sec-calibration has coordinates corresponding to a position in the S and T space. From this position, a U and V map is extracted from the light-field image for each centroid. An interpolation step is introduced to have the centroid aligned on the pixel grid. A masking operation is performed to only keep the circular angular information from the corresponding lenslet.
+The next step is to reshape the 2D light-field image into a 4D light-field array as a function of U and V (the spatial coordinates), and S and T (the angular coordinates). Each centroid location from @sec-calibration has coordinates corresponding to a position in the S and T space. From this position, a circular U and V map is extracted from the light-field image for each centroid. An interpolation step is introduced to have the centroid aligned on the pixel grid. A masking operation is performed to remove information from neighbouring lenslets.
+
+```{python}
+#| echo: true
+from scipy.interpolate import interpn
+
+def get_roi(image, center, half_size):
+    """
+    Extract a square Region of Interest (ROI) from an image.
+    
+    Parameters:
+    -----------
+    image : ndarray
+        The input image from which to extract the ROI.
+    center : tuple of int
+        The (x, y) coordinates of the center point of the ROI as integer indices.
+    half_size : int
+        Half the size of the ROI. The total width/height will be (2*half_size+1).
+        
+    Returns:
+    --------
+    ndarray
+        A square sub-image centered at the specified coordinates with 
+        dimensions (2*half_size+1) × (2*half_size+1).
+    """
+    x, y = center
+    return image[x-half_size:x+half_size+1, y-half_size:y+half_size+1]
+
+# Load raw light-field image
+raw_light_field_image = tifffile.imread('raw-light-field.tif')
+
+# Hard-coded UV map radius
+uv_radius = 17
+
+# Hard-coded margin (for interpolation)
+margin = 3
+
+# Initialize integer grid
+integer_grid = np.arange(-(uv_radius+margin), uv_radius+margin+1)
+u_int_grid, v_int_grid = np.meshgrid(integer_grid, integer_grid)
+
+# Create circular mask
+circular_mask = u_int_grid**2 + v_int_grid**2 <= uv_radius**2
+
+# Initialize light-field array
+uv_diameter = 2*uv_radius+1
+light_field_array = np.zeros((len(centroids), uv_diameter, uv_diameter))
+
+# Loop over the number of detected centroids
+for ii, centroid in enumerate(centroids):
+    # Rounded centroid location
+    rounded_centroid = centroid.astype(int)
+
+    # Calculate centroid grid offset
+    offset = centroid - rounded_centroid
+
+    # Create new grids for interpolation
+    u_grid, v_grid = np.meshgrid(integer_grid+offset[0], integer_grid+offset[1])
+
+    # Extract ROI around the centroid
+    uv_roi = get_roi(raw_light_field_image, rounded_centroid, uv_radius+margin)
+
+    # Interpolate the ROI to the offset grid
+    interpolated_roi = interpn(
+        (integer_grid, integer_grid),
+        uv_roi,
+        (v_grid, u_grid),
+        bounds_error=False,
+        fill_value=None
+        )
+
+    # Populate light-field array and perform masking operation (removing the margin)
+    light_field_array[ii, :, :] = (interpolated_roi*circular_mask)[margin:-margin, margin:-margin]
+```
 
 The reshaping procedure is demonstrated in @fig-reshaping using a representative angular (U and V) space in the light-field image. The figure displays three frames: the first showing an angular space from the light-field image at the location of a rounded calibration spot, the second showing the same angular space interpolated at the exact location of the centroid (aligned with the pixel grid), and the third showing the circular masking to reject angular information from neighboring lenslets. The pink cross marker indicates the weighted centroid position. Yellow axes indicate the center of the ROI.
 
 ::: {#fig-reshaping .column-page style='text-align: center;'}
 ```{python}
 from scipy.interpolate import interpn
+
+one_centroid = centroids[960]
+rounded_centroid = one_centroid.astype(int)
 
 roi_half_size = 20
 
