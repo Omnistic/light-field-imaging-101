@@ -420,6 +420,7 @@ fig.update_layout(
     sliders=sliders,
     xaxis=dict(showticklabels=False, showgrid=False, zeroline=False, visible=False),
     yaxis=dict(autorange='reversed', showticklabels=False, showgrid=False, zeroline=False, visible=False),
+    yaxis_scaleanchor='x',
     width=600,
     height=600
 )
