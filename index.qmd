@@ -134,8 +134,8 @@ fig = px.imshow(
 )
 fig.add_trace(
     go.Scatter(
-        x=[one_centroid[0]-rounded_centroid[0]+roi_half_size],
-        y=[one_centroid[1]-rounded_centroid[1]+roi_half_size],
+        x=[one_centroid[1]-rounded_centroid[1]+roi_half_size],
+        y=[one_centroid[0]-rounded_centroid[0]+roi_half_size],
         marker=dict(
             size=20,
             line=dict(
@@ -272,7 +272,7 @@ new_v = old_v + (one_centroid[1] - rounded_centroid[1])
 
 new_u_grid, new_v_grid = np.meshgrid(new_u, new_v)
 
-interpolated_uv = interpn((old_v, old_u), one_uv, (new_v_grid, new_u_grid), bounds_error=False, fill_value=None)
+interpolated_uv = interpn((old_u, old_v), one_uv, (new_u_grid, new_v_grid), bounds_error=False, fill_value=None)
 
 old_u_grid, old_v_grid = np.meshgrid(old_u, old_v)
 mask = old_u_grid**2 + old_v_grid**2 <= uv_radius**2
@@ -286,8 +286,8 @@ fig = px.imshow(
     animation_frame=0
 )
 fig.frames[0].data = fig.frames[0].data + (go.Scatter(
-    x=[offset_centroid[0]],
-    y=[offset_centroid[1]],
+    x=[offset_centroid[1]],
+    y=[offset_centroid[0]],
     mode='markers',
     marker=dict(
         size=20,
@@ -308,8 +308,8 @@ fig.frames[1].data = fig.frames[1].data + (go.Scatter(
     showlegend=False
 ),)
 fig.add_trace(go.Scatter(
-    x=[offset_centroid[0]],
-    y=[offset_centroid[1]],
+    x=[offset_centroid[1]],
+    y=[offset_centroid[0]],
     mode='markers',
     marker=dict(
         size=20,
@@ -369,6 +369,7 @@ Close-up of a light-field angular (U, V) map showing the reshaping process. Togg
 :::
 
 
+
 ```{python}
 from scipy.interpolate import griddata
 
@@ -418,10 +419,21 @@ sliders = [{
 fig.update_layout(
     sliders=sliders,
     xaxis=dict(showticklabels=False, showgrid=False, zeroline=False, visible=False),
-    yaxis=dict(showticklabels=False, showgrid=False, zeroline=False, visible=False),
+    yaxis=dict(autorange='reversed', showticklabels=False, showgrid=False, zeroline=False, visible=False),
     width=600,
     height=600
 )
 
 fig.show()
+```
+
+
+
+```{python}
+numS = 127
+numT = 127
+numU = 21
+numV = 21
+
+focus_array = np.zeros((numU*numV, numS, numT))
 ```
