@@ -431,10 +431,7 @@ fig.show()
 
 
 ```{python}
-numS = 127
-numT = 127
-numU = 21
-numV = 21
-
-focus_array = np.zeros((numU*numV, numS, numT))
+test = centroids[0:127,:]
+test_int = centroids[0:127,:].astype(int)
+indices = np.lexsort((test_int[:, 1], test_int[:, 0]))
 ```
